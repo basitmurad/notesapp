@@ -1,10 +1,10 @@
 
 import 'package:flutter/material.dart';
 import 'package:notesapp/models/Note.dart';
-import 'package:notesapp/models/myNotes.dart';
+import 'package:notesapp/services/MySqliteDb.dart';
 
 class AddNotes extends StatefulWidget {
-  final MyNotes? note;
+  final Note? note;
   const AddNotes({super.key, this.note});
 
   @override
@@ -19,7 +19,7 @@ class _AddNotesState extends State<AddNotes> {
     // TODO: implement initState
     if (widget.note != null) {
       _titleController = TextEditingController(text: widget.note!.title);
-      _contentController = TextEditingController(text: widget.note!.content);
+      _contentController = TextEditingController(text: widget.note!.description);
     }
 
     super.initState();
@@ -33,10 +33,12 @@ class _AddNotesState extends State<AddNotes> {
 
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade900,
+      backgroundColor: Colors.grey,
       body: Padding(
         padding: const EdgeInsets.fromLTRB(16, 40, 16, 0),
-        child: Column(children: [
+        child:
+
+        Column(children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -67,7 +69,7 @@ class _AddNotesState extends State<AddNotes> {
                     decoration: const InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Title',
-                        hintStyle: TextStyle(color: Colors.grey, fontSize: 30)),
+                        hintStyle: TextStyle(color: Colors.white, fontSize: 30)),
                   ),
                   TextField(
                     controller: _contentController,
@@ -79,7 +81,7 @@ class _AddNotesState extends State<AddNotes> {
                         border: InputBorder.none,
                         hintText: 'Type something here',
                         hintStyle: TextStyle(
-                          color: Colors.grey,
+                          color: Colors.white,
                         )),
                   ),
                 ],
@@ -88,12 +90,53 @@ class _AddNotesState extends State<AddNotes> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pop(
-              context, [_titleController.text, _contentController.text]);
+       if(_contentController.text.isEmpty || _titleController.text.isEmpty)
+         {
+           print('Enter title ');
+         }
+       else{
+         Navigator.pop(context, [_titleController.text, _contentController.text]);
+
+         Note updatedNote = Note(
+           id: widget.note?.id, // Use the existing ID if it's an update
+           title: _titleController.text,
+           description: _contentController.text,
+         );
+
+         if (widget.note != null) {
+           // If it's an existing note, update it
+           DbHelper.updateNote(updatedNote);
+         } else {
+           // If it's a new note, add it
+           DbHelper.addNote(updatedNote);
+         }
+       }
+
+          print('Note is saved');
+          // print(updatedNote.title);
+          // print(updatedNote.description);
         },
         elevation: 10,
         backgroundColor: Colors.grey.shade800,
         child: const Icon(Icons.save),
       ),
+
+      // floatingActionButton: FloatingActionButton(
+      //   onPressed: () {
+      //     Navigator.pop(
+      //         context, [_titleController.text, _contentController.text]);
+      //     Note note = Note(id: 1, title:_titleController.text, description: _contentController.text);
+      //
+      //     DbHelper.addNote(note);
+      //
+      //
+      //     print('Note is saved');
+      //     print(note.title);
+      //     print(note.description);
+      //   },
+      //   elevation: 10,
+      //   backgroundColor: Colors.grey.shade800,
+      //   child: const Icon(Icons.save),
+      // ),
     );  }
 }
